@@ -659,3 +659,4 @@ export async function togglePalletCheck(tforId, palletNumber, button, type) {
     }
 }
 
+
