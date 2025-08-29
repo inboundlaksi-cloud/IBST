@@ -1,3 +1,4 @@
+// Import necessary modules
 import { db } from './firebase-config.js';
 import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 import { showNotification, showLoading, hideLoading, showConfirmation } from './ui-manager.js';
@@ -563,4 +564,5 @@ function formatTime(seconds) {
     const secs = Math.floor(seconds % 60);
     
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
 }
