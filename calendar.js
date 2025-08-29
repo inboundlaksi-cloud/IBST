@@ -1,3 +1,4 @@
+// Import necessary modules
 import { db } from './firebase-config.js';
 import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 import { showNotification } from './ui-manager.js';
@@ -114,7 +115,6 @@ export function renderCalendar() {
         renderCalendarMonth(year, month + 1);
     });
 }
-
 // Render calendar for specific month
 export function renderCalendarMonth(year, month) {
     const container = document.getElementById('calendar-container');
@@ -503,4 +503,5 @@ function renderDayEvents(tfors, transfersData, issues) {
         issuesSection.appendChild(issuesList);
         container.appendChild(issuesSection);
     }
+
 }
