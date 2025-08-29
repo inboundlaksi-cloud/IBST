@@ -13,19 +13,24 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="text-gray-800">
+    <!-- Loading Container -->
     <div id="loading-container" class="loading-container">
         <div class="loading-spinner"></div>
     </div>
     
+    <!-- Notification Toast -->
     <div id="notification-toast" class="fixed top-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full z-50">
         <p id="notification-message"></p>
     </div>
     
+    <!-- Details & Scheduling Modal -->
     <div id="details-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
         <div id="details-modal-content" class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative max-h-[80vh] overflow-y-auto">
-            </div>
+            <!-- Content will be injected by JS -->
+        </div>
     </div>
     
+    <!-- Confirmation Modal -->
     <div id="confirmation-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
             <h3 id="confirmation-title" class="text-lg font-semibold mb-4">ยืนยันการกระทำ</h3>
@@ -37,6 +42,7 @@
         </div>
     </div>
     
+    <!-- Score Modal (for KPI) -->
     <div id="score-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <h3 id="score-modal-title" class="text-xl font-bold mb-4">ให้คะแนนพิเศษ</h3>
@@ -75,6 +81,7 @@
         </div>
     </div>
     
+    <!-- Star Points Modal -->
     <div id="star-points-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <h3 class="text-xl font-bold mb-4">ให้คะแนนดาว</h3>
@@ -121,6 +128,7 @@
         </div>
     </div>
     
+    <!-- Backup/Restore Modal -->
     <div id="backup-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-overlay">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <h3 class="text-xl font-bold mb-4">สำรอง / กู้คืนข้อมูล</h3>
@@ -139,11 +147,14 @@
         </div>
     </div>
     
+    <!-- Hidden container for PDF export content -->
     <div id="pdf-export-container" class="hidden">
         <div id="pdf-export-content"></div>
     </div>
     
+    <!-- Main Application Container -->
     <div id="app-container">
+        <!-- Login/Register View -->
         <div id="login-register-view" class="view min-h-screen flex items-center justify-center p-4">
             <div class="w-full max-w-sm p-8 space-y-6 bg-white rounded-2xl shadow-xl">
                 <h1 class="text-3xl font-bold text-center text-gray-800">INBOUND SYSTEM</h1>
@@ -190,6 +201,7 @@
             </div>
         </div>
         
+        <!-- Main Menu View -->
         <div id="main-menu-view" class="view">
             <header class="bg-white shadow-sm">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -199,7 +211,8 @@
                         <span id="user-role-display" class="hidden px-3 py-1 text-xs font-bold text-white bg-fuchsia-500 rounded-full"></span>
                     </div>
                     <div class="flex items-center space-x-4">
-                         <div class="relative">
+                         <!-- Notification Bell -->
+                        <div class="relative">
                             <button id="notification-bell" class="p-2 rounded-full hover:bg-gray-200 relative">
                                 <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                                 <span id="notification-count" class="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hidden">0</span>
@@ -209,7 +222,8 @@
                                     <h4 class="font-semibold text-gray-800">การแจ้งเตือน</h4>
                                 </div>
                                 <div id="notification-list" class="max-h-96 overflow-y-auto">
-                                    </div>
+                                    <!-- Notifications will be injected here -->
+                                </div>
                             </div>
                         </div>
                         <button id="profile-button" class="px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">โปรไฟล์</button>
@@ -270,6 +284,7 @@
             </main>
         </div>
         
+        <!-- Check Product View -->
         <div id="check-product-view" class="view">
             <header class="bg-white shadow-sm">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -286,6 +301,7 @@
                 </div>
             </header>
             <main class="container mx-auto px-4 py-8">
+                <!-- รายการที่เช็คแล้วแต่ยังไม่ได้รับ (Checked but not received) Section -->
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800 mb-4">รายการที่เช็คแล้วแต่ยังไม่ได้รับ</h2>
                     <p class="text-gray-600 mb-4">รายการที่กดยืนยันการเช็คพาเลทแล้ว แต่ยังไม่ได้กดรับสินค้า</p>
@@ -294,6 +310,7 @@
             </main>
         </div>
         
+        <!-- Profile View -->
         <div id="profile-view" class="view">
              <header class="bg-white shadow-sm">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -319,7 +336,8 @@
                             <div>
                                 <p class="text-center text-sm text-gray-600 mb-4">หรือเลือกรูปโปรไฟล์พื้นฐาน</p>
                                 <div id="default-avatar-container" class="flex justify-center flex-wrap gap-4">
-                                    </div>
+                                    <!-- Default avatars will be injected here -->
+                                </div>
                             </div>
                             <div>
                                 <label for="profile-email" class="block text-sm font-medium text-gray-700">อีเมล</label>
@@ -343,6 +361,7 @@
                         </form>
                     </div>
                     
+                    <!-- Star Points Section -->
                     <div class="bg-white rounded-2xl shadow-lg p-8">
                         <h2 class="text-xl font-bold mb-6 text-gray-800">คะแนนดาวของฉัน</h2>
                         <div class="star-display justify-center mb-6">
@@ -364,7 +383,8 @@
                         </div>
                         
                         <div id="user-achievements" class="flex flex-wrap justify-center">
-                            </div>
+                            <!-- Achievement badges will be injected here -->
+                        </div>
                     </div>
                     
                     <div class="bg-white rounded-2xl shadow-lg p-8">
@@ -408,6 +428,7 @@
             </main>
         </div>
         
+        <!-- KPI View -->
         <div id="kpi-view" data-permission="canViewKpi" class="view">
             <header class="bg-white shadow-sm">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -428,6 +449,7 @@
             </main>
         </div>
         
+        <!-- Today's Plan View -->
         <div id="todays-plan-view" class="view">
             <header class="bg-white shadow-sm">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -448,6 +470,7 @@
             </main>
         </div>
         
+        <!-- AI Chat View -->
         <div id="ai-chat-view" class="view">
             <div class="flex flex-col h-screen">
                 <header class="bg-white shadow-sm">
@@ -474,6 +497,7 @@
             </div>
         </div>
         
+        <!-- Transfers View -->
         <div id="transfers-view" class="view">
              <header class="bg-white shadow-sm">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -626,6 +650,7 @@
             </main>
         </div>
         
+        <!-- Calendar View -->
         <div id="calendar-view" class="view">
             <header class="bg-white shadow-sm">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -644,6 +669,7 @@
             </main>
         </div>
         
+        <!-- Statistics View -->
         <div id="statistics-view" class="view">
              <header class="bg-white shadow-sm">
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -678,9 +704,11 @@
                 <div id="statistics-report-container" class="bg-white rounded-2xl shadow-lg p-6">
                     <h2 id="report-title" class="text-2xl font-bold text-center mb-6">รายงานสรุปผล</h2>
                     <div id="statistics-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        </div>
+                        <!-- Summary cards will be injected here -->
+                    </div>
                     <div id="charts-container" class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        </div>
+                        <!-- Charts will be injected here -->
+                    </div>
                     <div data-permission="canManageSystem" class="mt-12 pt-8 border-t-2 border-dashed border-red-300 text-center">
                         <h3 class="text-xl font-bold text-red-600 mb-4">ส่วนของผู้ดูแลระบบ</h3>
                         <div class="flex justify-center gap-4">
