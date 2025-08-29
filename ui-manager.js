@@ -1,3 +1,7 @@
+// Import necessary modules
+import { auth } from './firebase-config.js';
+import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+
 // Global variables
 let currentView = 'login-register-view';
 const views = document.querySelectorAll('.view');
