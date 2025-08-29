@@ -46,11 +46,11 @@ body {
 .event-dot-red { background-color: #ef4444; } /* Issue */
 .event-dot-purple { background-color: #8b5cf6; } /* Scheduled */
 
-/* Role-based visibility classes (Legacy, now handled by JS) */
-[data-permission] {
+/* Role-based visibility classes */
+.admin-only, .supervisor-only, .senior-only, .officer-only, .viewer-only,
+.admin-supervisor-only, .senior-and-up, .delete-permission {
     display: none;
 }
-
 .star-rating .star {
     color: #d1d5db; /* gray-300 */
     cursor: pointer;
@@ -403,23 +403,4 @@ tr:hover {
 .calendar-picker-day.today {
     font-weight: bold;
     color: #8b5cf6;
-}
-
-/* Custom Scrollbar for Comments */
-#comments-display::-webkit-scrollbar {
-  width: 8px;
-}
-
-#comments-display::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-#comments-display::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 10px;
-}
-
-#comments-display::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
 }
