@@ -1,8 +1,8 @@
+// Import necessary modules
 import { db } from './firebase-config.js';
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, getDocs, query, where, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 import { auth } from './firebase-config.js';
 import { showNotification, showLoading, hideLoading, showConfirmation } from './ui-manager.js';
-import { loadUserData } from './user-management.js';
 
 // Load user data
 export async function loadUserData() {
@@ -44,6 +44,8 @@ export async function loadUserData() {
         console.error('Error loading user data:', error);
     }
 }
+
+// ฟังก์ชันอื่นๆ ตามเดิม...
 
 // Load default avatars
 function loadDefaultAvatars() {
@@ -396,3 +398,4 @@ export async function loadProfileData() {
     
     hideLoading();
 }
+
