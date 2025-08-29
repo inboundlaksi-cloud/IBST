@@ -1,3 +1,6 @@
+// Import necessary modules
+import { showNotification } from './ui-manager.js';
+
 // Initialize chat
 export function initializeChat() {
     const chatMessages = document.getElementById('chat-messages');
