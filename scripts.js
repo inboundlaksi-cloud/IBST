@@ -1,4 +1,3 @@
-
 // scripts.js
 // Firebase Core and Auth
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1998,125 +1997,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderAdvancedStatistics(timeframe = 'month') {
-    }    
-});
-    function showSchedulingModalForTransfer(transferData) {
-        const arrivalDate = parseThaiDate(transferData.deliveryDate);
-        let dueDateString = 'N/A';
-        if (arrivalDate) {
-            const dueDate = calculateDueDate(arrivalDate);
-            dueDateString = dueDate.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-        }
-        
-        let modalHtml = `
-            <button id="close-details-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
-            <h3 class="text-lg font-bold mb-3">วางแผนงานสำหรับ TFOR ...${transferData.tforNumber}</h3>
-            <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                <p class="font-semibold">รายละเอียด TFOR</p>
-                <p>ทะเบียนรถ: ${transferData.licensePlate}</p>
-                <p>สาขาต้นทาง: ${transferData.branch}</p>
-                <p>วันที่มาถึง: ${transferData.deliveryDate}</p>
-                <p class="text-red-600">ควรเช็คก่อนวันที่: ${dueDateString}</p>
-                <p>จำนวนพาเลท: ${transferData.palletCount}</p>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">เลือกวันที่ต้องการวางแผน</label>
-                <input type="date" id="schedule-date" class="w-full p-2 border rounded-lg" min="${new Date().toISOString().split('T')[0]}">
-            </div>
-            <div class="text-right">
-                <button id="save-schedule-btn" class="px-4 py-2 bg-fuchsia-600 text-white rounded-lg">บันทึกแผนงาน</button>
-            </div>
-        `;
-        
-        showDetailsModal(modalHtml, true);
-        
-        document.getElementById('save-schedule-btn').addEventListener('click', async () => {
-            const scheduleDate = document.getElementById('schedule-date').value;
-            if (!scheduleDate) {
-                showNotification('กรุณาเลือกวันที่ต้องการวางแผน', false);
-                return;
-            }
-            
-            const dateObj = new Date(scheduleDate);
-            const thaiDateString = dateObj.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-            
-            try {
-                await updateDoc(doc(db, "transfers", transferData.id), {
-                    scheduledDate: thaiDateString,
-                    scheduledByUid: currentUser.uid,
-                    scheduledByName: `${currentUserProfile.firstName} ${currentUserProfile.lastName}`
-                });
-                
-                showNotification('วางแผนงานสำเร็จ');
-                document.getElementById('close-details-modal').click();
-            } catch (error) {
-                console.error("Error scheduling TFOR:", error);
-                showNotification('เกิดข้อผิดพลาดในการวางแผนงาน', false);
-            }
-        });
-    }
-
-    function calculateDueDate(startDate) {
-        let date = new Date(startDate);
-        let addedDays = 0;
-        while (addedDays < 3) {
-            date.setDate(date.getDate() + 1);
-            const dayOfWeek = date.getDay();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = Sunday, 6 = Saturday
-                addedDays++;
-            }
-        }
-        return date;
-    }
-    
-    function updateNotifications() {
-        const overdueItems = allTransfersData.filter(t => {
-            const arrivalDate = parseThaiDate(t.deliveryDate);
-            if (!arrivalDate || t.isCompleted) return false;
-            const dueDate = calculateDueDate(arrivalDate);
-            return new Date() > dueDate;
-        });
-
-        if (overdueItems.length > 0) {
-            notificationCount.textContent = overdueItems.length;
-            notificationCount.classList.remove('hidden');
-        } else {
-            notificationCount.classList.add('hidden');
-        }
-
-        if (overdueItems.length === 0) {
-            notificationList.innerHTML = '<p class="text-sm text-gray-500 p-4 text-center">ไม่มีการแจ้งเตือน</p>';
-            return;
-        }
-
-        notificationList.innerHTML = overdueItems.map(item => `
-            <div class="p-2 border-b hover:bg-gray-100 cursor-pointer notification-item" data-id="${item.id}">
-                <p class="font-semibold text-sm text-red-600">TFOR เลยกำหนดเช็ค!</p>
-                <p class="text-xs text-gray-700">TFOR ...${item.tforNumber} (${item.branch})</p>
-                <p class="text-xs text-gray-500">วันที่มาถึง: ${item.deliveryDate}</p>
-            </div>
-        `).join('');
-
-        document.querySelectorAll('.notification-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const transferId = e.currentTarget.dataset.id;
-                const transferData = allTransfersData.find(t => t.id === transferId);
-                if(transferData) {
-                    currentTforData = transferData;
-                    showMainView(views.transfers);
-                    renderCheckView();
-                    showSubView(checkView);
-                    notificationPanel.classList.add('hidden');
-                }
-            });
-        });
-    }
-
-    notificationBell.addEventListener('click', () => {
-        notificationPanel.classList.toggle('hidden');
-    });
-
-    function renderAdvancedStatistics(timeframe = 'month') {
         const container = document.getElementById('statistics-container');
         const chartsContainer = document.getElementById('charts-container');
         const reportTitle = document.getElementById('report-title');
@@ -2137,7 +2017,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { title: 'พาเลททั้งหมด', value: stats.totalPallets, color: 'bg-indigo-100', textColor: 'text-indigo-800', items: stats.filteredData },
             { title: 'สินค้ามีปัญหา', value: stats.totalIssues, color: 'bg-yellow-100', textColor: 'text-yellow-800', items: Object.values(issuesData).flat().filter(i => { const iDate = i.createdAt?.toDate ? i.createdAt.toDate() : parseThaiDate(i.reportDate); return iDate && iDate >= new Date(new Date().getFullYear(), 0, 1);}) }
         ];
-        container.innerHTML = '';
+        container.innerHTML = ''; // Clear previous cards
         cardsData.forEach(card => {
             const cardEl = document.createElement('div');
             cardEl.className = `p-6 rounded-2xl shadow-lg ${card.color} cursor-pointer hover:scale-105 transition-transform`;
@@ -2145,7 +2025,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardEl.addEventListener('click', () => showStatsDetailModal(card.title, card.items));
             container.appendChild(cardEl);
         });
-        
+        // Chart 1: Inbound by Branch
         const branchChartContainer = document.createElement('div');
         branchChartContainer.className = 'p-6 bg-white rounded-2xl shadow-inner';
         branchChartContainer.innerHTML = '<h3 class="text-xl font-bold mb-4">จำนวนของเข้าตามสาขา</h3><div class="relative h-64 md:h-80"><canvas id="branch-bar-chart"></canvas></div>';
@@ -2160,7 +2040,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: { labels: Object.keys(branchCounts), datasets: [{ label: 'จำนวน TFORs', data: Object.values(branchCounts), backgroundColor: '#a855f7' }] },
             options: { scales: { y: { beginAtZero: true } }, responsive: true, maintainAspectRatio: false }
         });
-        
+        // Chart 2: Status Distribution
         const statusChartContainer = document.createElement('div');
         statusChartContainer.className = 'p-6 bg-white rounded-2xl shadow-inner';
         statusChartContainer.innerHTML = '<h3 class="text-xl font-bold mb-4">สถานะการดำเนินงาน</h3><div class="relative h-64 md:h-80"><canvas id="status-pie-chart"></canvas></div>';
@@ -2219,13 +2099,245 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAdvancedStatistics(e.target.dataset.frame);
         });
     });
-
+    
+    // --- NEW/IMPROVED EXPORT LOGIC ---
+    
     async function generateAndExportPdf() {
-        // ... (This function remains the same as previous answers)
+        const button = document.getElementById('export-pdf-btn');
+        button.disabled = true;
+        button.innerHTML = `<div class="loading-spinner w-5 h-5 border-white border-t-transparent rounded-full inline-block mr-2"></div> กำลังสร้าง...`;
+        
+        const timeframe = document.querySelector('.timeframe-btn.bg-fuchsia-600').dataset.frame;
+        const stats = getStatsData(timeframe);
+        const reportTitle = document.getElementById('report-title').textContent;
+        const exportContent = document.getElementById('pdf-export-content');
+        
+        const branchChartImg = currentChartInstances.branchChart ? currentChartInstances.branchChart.toBase64Image() : '';
+        const statusChartImg = currentChartInstances.statusChart ? currentChartInstances.statusChart.toBase64Image() : '';
+        
+        let html = `<!DOCTYPE html>
+        <html>
+        <head>
+            <title>${reportTitle}</title>
+            <meta charset="utf-8">
+            <style>
+                body {
+                    font-family: 'Sarabun', sans-serif;
+                    color: #333;
+                    margin: 0;
+                    padding: 20px;
+                    font-size: 14px;
+                }
+                h1 { 
+                    font-size: 24px; 
+                    font-weight: bold; 
+                    margin-bottom: 16px; 
+                    text-align: center;
+                    color: #4f46e5;
+                }
+                h2 { 
+                    font-size: 18px; 
+                    font-weight: bold; 
+                    margin-top: 24px; 
+                    margin-bottom: 12px; 
+                    border-bottom: 1px solid #ccc; 
+                    padding-bottom: 4px;
+                    color: #4f46e5;
+                }
+                table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    font-size: 12px;
+                    margin-bottom: 20px;
+                }
+                th, td { 
+                    border: 1px solid #ddd; 
+                    padding: 8px; 
+                    text-align: left;
+                }
+                th { 
+                    background-color: #f2f2f2;
+                    font-weight: bold;
+                }
+                .chart-image { 
+                    max-width: 90%; 
+                    height: auto; 
+                    display: block; 
+                    margin: 20px auto;
+                }
+                .page-break { 
+                    page-break-before: always;
+                }
+                .summary-card {
+                    background-color: #f9fafb;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 16px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .summary-card h3 {
+                    margin-top: 0;
+                    margin-bottom: 8px;
+                    font-size: 16px;
+                }
+                .summary-card p {
+                    margin: 0;
+                    font-size: 14px;
+                }
+                .summary-value {
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #4f46e5;
+                }
+                .summary-cards-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 16px;
+                    margin-bottom: 24px;
+                }
+                table tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
+                .table-container {
+                    overflow-x: auto;
+                    margin-bottom: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>${reportTitle}</h1>
+            
+            <div class="summary-cards-grid">
+                <div class="summary-card">
+                    <h3>ของเข้าทั้งหมด (TFORs)</h3>
+                    <p class="summary-value">${stats.totalInbound}</p>
+                </div>
+                <div class="summary-card">
+                    <h3>เช็คเสร็จแล้ว</h3>
+                    <p class="summary-value">${stats.totalCompleted}</p>
+                </div>
+                <div class="summary-card">
+                    <h3>รับสินค้าแล้ว</h3>
+                    <p class="summary-value">${stats.totalReceived}</p>
+                </div>
+                <div class="summary-card">
+                    <h3>คงค้าง (ล่าช้า)</h3>
+                    <p class="summary-value">${stats.totalOverdue}</p>
+                </div>
+                <div class="summary-card" style="grid-column: span 2;">
+                    <h3>พาเลททั้งหมด</h3>
+                    <p class="summary-value">${stats.totalPallets}</p>
+                </div>
+                <div class="summary-card" style="grid-column: span 2;">
+                    <h3>สินค้ามีปัญหา</h3>
+                    <p class="summary-value">${stats.totalIssues}</p>
+                </div>
+            </div>
+            
+            <h2>กราฟสรุปผล</h2>
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 24px;">
+                <div style="width: 48%; margin-bottom: 16px;">
+                    <img src="${branchChartImg}" class="chart-image">
+                </div>
+                <div style="width: 48%; margin-bottom: 16px;">
+                    <img src="${statusChartImg}" class="chart-image">
+                </div>
+            </div>
+            <div class="page-break"></div>
+            
+            <h2>รายละเอียดข้อมูล TFORs</h2>
+            <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>วันที่มาถึง</th><th>ทะเบียนรถ</th><th>TFOR</th><th>สาขาต้นทาง</th>
+                        <th>จำนวนพาเลท</th><th>สถานะ</th><th>วันที่เช็คเสร็จ</th><th>ผู้เช็ค</th>
+                        <th>หมายเหตุ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${stats.filteredData.map(d => `
+                        <tr>
+                            <td>${d.deliveryDate || 'N/A'}</td>
+                            <td>${d.licensePlate || 'N/A'}</td>
+                            <td>...${d.tforNumber || 'N/A'}</td>
+                            <td>${d.branch || 'N/A'}</td>
+                            <td>${d.palletCount || 0}</td>
+                            <td>${d.isCompleted ? 'เช็คเสร็จแล้ว' : 'รอดำเนินการ'}</td>
+                            <td>${d.completionDate || '-'}</td>
+                            <td>${d.lastCheckedByName || '-'}</td>
+                            <td>${d.palletNotes || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            </div>
+        </body>
+        </html>`;
+        
+        exportContent.innerHTML = html;
+        
+        const opt = {
+            margin: 10,
+            filename: `inbound_report_${timeframe}_${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                letterRendering: true
+            },
+            jsPDF: { 
+                unit: 'mm', 
+                format: 'a4', 
+                orientation: 'portrait'
+            }
+        };
+        
+        try {
+            await html2pdf().from(exportContent).set(opt).save();
+            showNotification('ส่งออก PDF สำเร็จแล้ว');
+        } catch (error) {
+            console.error('PDF export error:', error);
+            showNotification('เกิดข้อผิดพลาดในการส่งออก PDF: ' + error.message, false);
+        } finally {
+            button.disabled = false;
+            button.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>Export PDF`;
+        }
     }
     
     function exportToCsv() {
-        // ... (This function remains the same as previous answers)
+        const button = document.getElementById('export-excel-btn');
+        button.disabled = true;
+        button.innerHTML = `<div class="loading-spinner w-5 h-5 border-white border-t-transparent rounded-full inline-block mr-2"></div> กำลังสร้าง...`;
+        const timeframe = document.querySelector('.timeframe-btn.bg-fuchsia-600').dataset.frame;
+        const { filteredData } = getStatsData(timeframe);
+        const headers = ["วันที่มาถึง", "ทะเบียนรถ", "TFOR", "สาขาต้นทาง", "จำนวนพาเลท", "สถานะ", "วันที่เช็คเสร็จ", "ผู้เช็คล่าสุด", "ผู้นำเข้าข้อมูล", "หมายเหตุ"];
+        const rows = filteredData.map(row => [
+            row.deliveryDate || '',
+            row.licensePlate || '',
+            `...${row.tforNumber || ''}`,
+            row.branch || '',
+            row.palletCount || 0,
+            row.isCompleted ? 'เช็คเสร็จแล้ว' : 'รอดำเนินการ',
+            row.completionDate || '',
+            row.lastCheckedByName || '',
+            row.createdByName || '',
+            row.palletNotes || ''
+        ]);
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF" // \uFEFF for BOM to handle Thai characters in Excel
+            + headers.join(",") + "\n" 
+            + rows.map(e => e.map(cell => `"${cell}"`).join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `inbound_data_${timeframe}_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        button.disabled = false;
+        button.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>Export Excel`;
     }
     
     document.getElementById('export-pdf-btn').addEventListener('click', generateAndExportPdf);
@@ -2260,6 +2372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmCallback = null;
     });
     
+    // --- KPI View Logic ---
     function renderKpiView() {
         const summaryContainer = document.getElementById('kpi-summary-container');
         const detailsContainer = document.getElementById('kpi-details-container');
@@ -2268,16 +2381,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const allIssues = Object.values(issuesData).flat();
         
         allUsers.forEach(user => {
-            if (user.role === 'Admin') return;
+            if (user.role === 'Admin') return; // Don't show admin in KPI list
             const createdCount = [...allTransfersData, ...completedTransfersData].filter(t => t.createdByUid === user.id).length;
             const checkedCount = completedTransfersData.filter(t => t.lastCheckedByUid === user.id).length;
             const receivedCount = completedTransfersData.filter(t => t.lastReceivedByUid === user.id).length;
+            
+            // Count issues reported by this user
             const reportedIssuesCount = allIssues.filter(i => i.reportedByUid === user.id).length;
+            
+            // Count issues found by this user (where they were the checker)
             const foundIssuesCount = allIssues.filter(i => i.checkerUid === user.id).length;
+            
             const userScores = allScores.filter(s => s.userId === user.id);
             const totalStars = userScores.reduce((sum, score) => sum + (score.score || 0), 0);
             const profilePic = user.profilePictureUrl || 'https://placehold.co/80x80/e0e0e0/757575?text=?';
             
+            // KPI Calculation: Checked + Created + Found Issues + Reported Issues + Received + Stars
             const kpiScore = checkedCount + createdCount + foundIssuesCount + reportedIssuesCount + receivedCount + totalStars;
             const scoreColor = kpiScore > 10 ? 'text-green-500' : kpiScore > 0 ? 'text-blue-500' : 'text-red-500';
             const card = document.createElement('div');
@@ -2305,7 +2424,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="mt-2 text-center text-sm text-gray-600">
                     <p>พบปัญหา: ${foundIssuesCount} รายการ</p>
                 </div>
-                <div class="mt-4" data-permission="canGiveScores">
+                <div class="mt-4 admin-supervisor-only">
                     <button class="give-star-points-btn w-full py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200" data-user-id="${user.id}">
                         <span class="small-star">★</span> ให้คะแนนดาว
                     </button>
@@ -2316,13 +2435,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         renderUserManagement();
         
+        // Add event listeners to star points buttons
         document.querySelectorAll('.give-star-points-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 showStarPointsModal(e.target.dataset.userId);
             });
         });
-        updateUIForPermissions();
     }
     
     function renderUserManagement() {
@@ -2335,7 +2454,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อ-นามสกุล</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">อีเมล</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ตำแหน่ง</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase" data-permission="canManageUsers">จัดการ</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase admin-only">จัดการ</th>
             </tr></thead>
             <tbody class="divide-y divide-gray-200"></tbody>`;
         const tbody = table.querySelector('tbody');
@@ -2353,35 +2472,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="Viewer" ${user.role === 'Viewer' ? 'selected' : ''}>Viewer</option>
                     </select>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap" data-permission="canManageUsers">
-                    <button class="delete-user-btn text-red-500 hover:text-red-700" data-uid="${user.id}" data-email="${user.email}">
+                <td class="px-6 py-4 whitespace-nowrap admin-only">
+                    <button class="delete-user-btn text-red-500 hover:text-red-700" data-uid="${user.uid}" data-email="${user.email}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </td>
+            </tr>
             `;
         });
         container.appendChild(table);
         
+        // Add event listeners for role selection
         document.querySelectorAll('.role-select').forEach(select => {
-            if (!checkPermission('canManageUsers')) {
-                select.disabled = true;
-            } else {
-                select.addEventListener('change', async (e) => {
-                    const newRole = e.target.value;
-                    const uid = e.target.dataset.uid;
-                    try {
-                        await updateDoc(doc(db, "users", uid), { 
-                            role: newRole,
-                            permissions: getPermissionsFromRole(newRole)
-                        });
-                        showNotification('อัปเดตตำแหน่งสำเร็จ');
-                    } catch (error) {
-                        showNotification('เกิดข้อผิดพลาด', false);
-                    }
-                });
-            }
+            select.addEventListener('change', async (e) => {
+                const newRole = e.target.value;
+                const uid = e.target.dataset.uid;
+                try {
+                    await updateDoc(doc(db, "users", uid), { role: newRole });
+                    showNotification('อัปเดตตำแหน่งสำเร็จ');
+                } catch (error) {
+                    showNotification('เกิดข้อผิดพลาด', false);
+                }
+            });
         });
         
+        // Add event listeners for delete buttons
         document.querySelectorAll('.delete-user-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const uid = e.currentTarget.dataset.uid;
@@ -2390,25 +2505,49 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         
-        updateUIForPermissions();
+        // Update UI for roles
+        updateUIForRoles();
     }
-
+    
     function showDeleteUserConfirmation(uid, email) {
-        showConfirmationModal(`คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งาน "${email}"? การกระทำนี้ไม่สามารถกู้คืนได้`, () => deleteUser(uid));
+        showConfirmationModal(
+            `คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งาน "${email}"? การกระทำนี้ไม่สามารถกู้คืนได้`,
+            () => deleteUser(uid)
+        );
     }
     
     async function deleteUser(uid) {
         try {
+            // Delete the user document from Firestore
             await deleteDoc(doc(db, "users", uid));
+            
+            // Remove the user from the local allUsers array
             allUsers = allUsers.filter(user => user.id !== uid);
+            
+            // Re-render the KPI view to update the user list
             renderKpiView();
+            
             showNotification("ลบผู้ใช้งานสำเร็จ");
         } catch (error) {
             console.error("Error deleting user:", error);
             showNotification("เกิดข้อผิดพลาดในการลบผู้ใช้งาน", false);
         }
     }
-
+    
+    function getMillis(timestamp) {
+        if (!timestamp) return 0;
+        if (typeof timestamp.toMillis === 'function') {
+            return timestamp.toMillis();
+        }
+        if (typeof timestamp === 'string') {
+            return new Date(timestamp).getTime();
+        }
+        if (timestamp.seconds) {
+            return timestamp.seconds * 1000;
+        }
+        return 0;
+    }
+    
     function renderKpiDetails(user) {
         const container = document.getElementById('kpi-details-container');
         container.dataset.userId = user.id;
@@ -2420,11 +2559,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const createdCount = allUserTransfers.filter(t => t.createdByUid === user.id).length;
         const checkedCount = completedTransfersData.filter(t => t.lastCheckedByUid === user.id).length;
         const receivedCount = completedTransfersData.filter(t => t.lastReceivedByUid === user.id).length;
+        
+        // Count issues reported by this user
         const allIssues = Object.values(issuesData).flat();
         const reportedIssuesCount = allIssues.filter(i => i.reportedByUid === user.id).length;
-        const foundIssuesCount = allIssues.filter(i => i.checkerUid === user.id).length;
-        const performanceScore = checkedCount + createdCount + foundIssuesCount + reportedIssuesCount + receivedCount + totalStars;
         
+        // Count issues found by this user (where they were the checker)
+        const foundIssuesCount = allIssues.filter(i => i.checkerUid === user.id).length;
+        
+        const performanceScore = checkedCount + createdCount + foundIssuesCount + reportedIssuesCount + receivedCount + totalStars;
+        const issueRate = checkedCount > 0 ? ((reportedIssuesCount / checkedCount) * 100).toFixed(1) : 0;
         let scoreHistoryHtml = '<p class="text-gray-500">ยังไม่มีประวัติคะแนนพิเศษ</p>';
         if (userScores.length > 0) {
             scoreHistoryHtml = userScores.map(score => {
@@ -2439,7 +2583,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="text-xs text-gray-500">โดย: ${score.awardedByName} - ${scoreDate}</p>
                         ${score.notes ? `<p class="text-sm text-gray-600 italic mt-1">"${score.notes}"</p>` : ''}
                     </div>
-                    <div data-permission="canGiveScores">
+                    <div class="admin-supervisor-only">
                         <button class="delete-score-btn text-red-400 hover:text-red-600" data-score-id="${score.id}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
@@ -2460,7 +2604,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </p>
                     </div>
                 </div>
-                <div data-permission="canGiveScores" class="mt-4 sm:mt-0 flex gap-2">
+                <div class="admin-supervisor-only mt-4 sm:mt-0 flex gap-2">
                     <button id="add-score-btn" data-user-id="${user.id}" class="px-4 py-2 bg-fuchsia-600 text-white rounded-lg shadow hover:bg-fuchsia-700">ให้คะแนนพิเศษ</button>
                     <button id="add-star-points-btn" data-user-id="${user.id}" class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg shadow hover:bg-yellow-200">
                         <span class="small-star">★</span> ให้คะแนนดาว
@@ -2506,7 +2650,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, responsive: true, maintainAspectRatio: false }
         });
-        updateUIForPermissions();
+        updateUIForRoles(); // Ensure delete buttons are visible for the right roles
         document.getElementById('back-to-kpi-summary').addEventListener('click', () => {
             container.classList.add('hidden');
             if(currentChartInstances.kpiChart) currentChartInstances.kpiChart.destroy();
@@ -2524,7 +2668,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
+    
     async function deleteScore(scoreId) {
         try {
             await deleteDoc(doc(db, "scores", scoreId));
@@ -2534,7 +2678,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error deleting score:", error);
         }
     }
-
+    
     function showScoreModal(userId) {
         scoreForm.reset();
         scoreForm.querySelector('#score-user-id').value = userId;
@@ -2546,22 +2690,34 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreModal.classList.add('flex');
     }
     
+    // Star Points Modal Functions
     function showStarPointsModal(userId) {
         const user = allUsers.find(u => u.id === userId);
         if (!user) return;
+        
+        // Get current star counts
         const smallStars = user.smallStars || 0;
         const bigStars = user.bigStars || 0;
+        
+        // Update modal display
         document.getElementById('current-small-stars').textContent = smallStars;
         document.getElementById('current-big-stars').textContent = bigStars;
-        const progressPercent = (smallStars % 10) * 10;
+        
+        // Update progress bar
+        const progressPercent = (smallStars % 10) * 10; // 10% per star
         document.getElementById('star-progress-bar').style.width = `${progressPercent}%`;
+        
+        // Store user ID for saving
         starPointsModal.dataset.userId = userId;
+        
+        // Reset form
         document.getElementById('star-reason').value = 'ทำงานรวดเร็วและมีประสิทธิภาพ';
         document.getElementById('star-notes').value = '';
+        
         starPointsModal.classList.remove('hidden');
         starPointsModal.classList.add('flex');
     }
-
+    
     document.getElementById('star-modal-cancel').addEventListener('click', () => {
         starPointsModal.classList.add('hidden');
         starPointsModal.classList.remove('flex');
@@ -2580,43 +2736,65 @@ document.addEventListener('DOMContentLoaded', () => {
             updateStarProgress();
         }
     });
-
+    
     function updateStarProgress() {
         const smallStars = parseInt(document.getElementById('current-small-stars').textContent);
         const bigStars = parseInt(document.getElementById('current-big-stars').textContent);
-        const progressPercent = (smallStars % 10) * 10;
+        
+        // Update progress bar
+        const progressPercent = (smallStars % 10) * 10; // 10% per star
         document.getElementById('star-progress-bar').style.width = `${progressPercent}%`;
+        
+        // Check if user earned a big star
         if (smallStars >= 10) {
             const newBigStars = bigStars + Math.floor(smallStars / 10);
             const remainingSmallStars = smallStars % 10;
+            
             document.getElementById('current-small-stars').textContent = remainingSmallStars;
             document.getElementById('current-big-stars').textContent = newBigStars;
-            showNotification('ยินดีด้วย! คุณได้รับดาวใหญ่!');
+            
+            showNotification('ยินดีด้วย! คุณได้รับดาวใหญ่ 1 ดวง!');
         }
     }
-
+    
     document.getElementById('save-star-points').addEventListener('click', async () => {
         const userId = starPointsModal.dataset.userId;
         const smallStars = parseInt(document.getElementById('current-small-stars').textContent);
         const bigStars = parseInt(document.getElementById('current-big-stars').textContent);
         const reason = document.getElementById('star-reason').value;
         const notes = document.getElementById('star-notes').value;
+        
         try {
-            await updateDoc(doc(db, "users", userId), { smallStars, bigStars });
+            // Update user's star counts
+            await updateDoc(doc(db, "users", userId), {
+                smallStars: smallStars,
+                bigStars: bigStars
+            });
+            
+            // Save star points transaction
             await addDoc(collection(db, "starPoints"), {
-                userId, smallStars, bigStars, reason, notes,
+                userId: userId,
+                smallStars: smallStars,
+                bigStars: bigStars,
+                reason: reason,
+                notes: notes,
                 awardedByUid: currentUser.uid,
                 awardedByName: `${currentUserProfile.firstName} ${currentUserProfile.lastName}`,
                 timestamp: serverTimestamp()
             });
+            
+            // Update local user data
             const userIndex = allUsers.findIndex(u => u.id === userId);
             if (userIndex !== -1) {
                 allUsers[userIndex].smallStars = smallStars;
                 allUsers[userIndex].bigStars = bigStars;
             }
+            
             showNotification('บันทึกคะแนนดาวสำเร็จ!');
             starPointsModal.classList.add('hidden');
             starPointsModal.classList.remove('flex');
+            
+            // If we're in profile view, update the display
             if (views.profile.style.display === 'block' && currentUser.id === userId) {
                 renderProfileStarPoints();
             }
@@ -2625,35 +2803,38 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error saving star points:", error);
         }
     });
-
+    
     document.getElementById('score-modal-cancel').addEventListener('click', () => {
         scoreModal.classList.add('hidden');
         scoreModal.classList.remove('flex');
     });
-
+    
     document.getElementById('score-reason').addEventListener('change', (e) => {
         const starRatingDiv = document.getElementById('score-star-rating');
-        starRatingDiv.classList.toggle('deduction', e.target.value.includes('(หักคะแนน)'));
+        if (e.target.value === 'ทำงานผิดพลาด (หักคะแนน)') {
+            starRatingDiv.classList.add('deduction');
+        } else {
+            starRatingDiv.classList.remove('deduction');
+        }
     });
-
+    
     const stars = document.querySelectorAll('#score-star-rating .star');
     stars.forEach(star => {
         star.addEventListener('click', () => {
             const value = star.dataset.value;
             scoreForm.querySelector('#score-value').value = value;
-            stars.forEach(s => s.classList.toggle('selected', s.dataset.value <= value));
+            stars.forEach(s => {
+                s.classList.toggle('selected', s.dataset.value <= value);
+            });
         });
     });
-
+    
     scoreForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         let scoreValue = parseInt(scoreForm.querySelector('#score-value').value);
         const reason = scoreForm.querySelector('#score-reason').value;
-        if (reason.includes('(หักคะแนน)')) {
+        if (reason === 'ทำงานผิดพลาด (หักคะแนน)') {
             scoreValue = -scoreValue;
-        }
-        if (isNaN(scoreValue)) {
-            showNotification('กรุณาให้คะแนนดาว', false); return;
         }
         const scoreData = {
             userId: scoreForm.querySelector('#score-user-id').value,
@@ -2664,6 +2845,9 @@ document.addEventListener('DOMContentLoaded', () => {
             awardedByName: `${currentUserProfile.firstName} ${currentUserProfile.lastName}`,
             timestamp: serverTimestamp()
         };
+        if (!scoreData.score || isNaN(scoreValue)) {
+            showNotification('กรุณาให้คะแนนดาว', false); return;
+        }
         try {
             await addDoc(collection(db, "scores"), scoreData);
             showNotification('บันทึกคะแนนสำเร็จ!');
@@ -2674,7 +2858,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error saving score:", error);
         }
     });
-
+    
+    // --- Profile View Logic ---
     function renderProfileView() {
         if (currentUserProfile) {
             profileForm.querySelector('#profile-email').value = currentUserProfile.email;
@@ -2689,23 +2874,34 @@ document.addEventListener('DOMContentLoaded', () => {
             renderProfileStarPoints();
         }
     }
-
+    
     function renderProfileStarPoints() {
         if (!currentUserProfile) return;
+        
         const smallStars = currentUserProfile.smallStars || 0;
         const bigStars = currentUserProfile.bigStars || 0;
+        
+        // Update star display
         document.getElementById('user-small-stars').textContent = smallStars;
         document.getElementById('user-big-stars').textContent = bigStars;
-        const progressPercent = (smallStars % 10) * 10;
+        
+        // Update progress bar
+        const progressPercent = (smallStars % 10) * 10; // 10% per star
         document.getElementById('star-progress-bar').style.width = `${progressPercent}%`;
+        
+        // Render achievement badges
         const achievementsContainer = document.getElementById('user-achievements');
         achievementsContainer.innerHTML = '';
+        
+        // Add big star achievement badges
         for (let i = 0; i < bigStars; i++) {
             const badge = document.createElement('div');
             badge.className = 'achievement-badge';
             badge.innerHTML = `<span class="big-star">★</span> ดาวใหญ่`;
             achievementsContainer.appendChild(badge);
         }
+        
+        // Add next big star progress if user has some small stars but not enough for a big star
         if (smallStars > 0 && smallStars < 10) {
             const badge = document.createElement('div');
             badge.className = 'achievement-badge opacity-50';
@@ -2713,13 +2909,16 @@ document.addEventListener('DOMContentLoaded', () => {
             achievementsContainer.appendChild(badge);
         }
     }
-
+    
     function renderDefaultAvatars() {
         defaultAvatarContainer.innerHTML = '';
         const avatars = [
-            'https://avatar.iran.liara.run/public/boy?username=Scott', 'https://avatar.iran.liara.run/public/girl?username=Amy',
-            'https://avatar.iran.liara.run/public/boy?username=James', 'https://avatar.iran.liara.run/public/girl?username=Sara',
-            'https://avatar.iran.liara.run/public/boy?username=Tom', 'https://avatar.iran.liara.run/public/girl?username=Nia'
+            'https://avatar.iran.liara.run/public/boy?username=Scott',
+            'https://avatar.iran.liara.run/public/girl?username=Amy',
+            'https://avatar.iran.liara.run/public/boy?username=James',
+            'https://avatar.iran.liara.run/public/girl?username=Sara',
+            'https://avatar.iran.liara.run/public/boy?username=Tom',
+            'https://avatar.iran.liara.run/public/girl?username=Nia'
         ];
         avatars.forEach(url => {
             const img = document.createElement('img');
@@ -2729,12 +2928,14 @@ document.addEventListener('DOMContentLoaded', () => {
             defaultAvatarContainer.appendChild(img);
         });
     }
-
+    
     defaultAvatarContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('default-avatar')) {
             const url = e.target.dataset.url;
             profilePicPreview.src = url;
-            newProfilePicBase64 = url;
+            newProfilePicBase64 = url; // Use the same variable to store the selected URL
+            
+            // Visually indicate selection
             document.querySelectorAll('.default-avatar').forEach(el => el.classList.remove('selected'));
             e.target.classList.add('selected');
         }
@@ -2744,7 +2945,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = e.target.files[0];
         if (file && file.type.startsWith('image/')) {
             try {
-                const resizedBase64 = await resizeImage(file, 400, 400, 0.9);
+                const resizedBase64 = await resizeImage(file, 400, 400, 0.9); // Smaller size for profile pics
                 newProfilePicBase64 = resizedBase64;
                 profilePicPreview.src = resizedBase64;
                 document.querySelectorAll('.default-avatar').forEach(el => el.classList.remove('selected'));
@@ -2771,6 +2972,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const userDocRef = doc(db, "users", currentUser.uid);
             await updateDoc(userDocRef, updateData);
             
+            // Update local profile object
             Object.assign(currentUserProfile, updateData);
             updateUserDisplays(currentUserProfile);
             showNotification('อัปเดตโปรไฟล์สำเร็จ!');
@@ -2783,16 +2985,28 @@ document.addEventListener('DOMContentLoaded', () => {
             button.textContent = 'บันทึกการเปลี่ยนแปลง';
         }
     });
-
+    
     function renderRecentActivity() {
         const container = document.getElementById('recent-activity-container');
         const allUserTransfers = [...allTransfersData, ...completedTransfersData];
         const allUserIssues = Object.values(issuesData).flat();
-        const createdActivity = allUserTransfers.filter(t => t.createdByUid === currentUser.uid).map(t => ({...t, type: 'สร้าง', timestamp: t.createdAt}));
-        const checkedActivity = completedTransfersData.filter(t => t.lastCheckedByUid === currentUser.uid).map(t => ({...t, type: 'เช็คเสร็จ', timestamp: t.createdAt}));
-        const receivedActivity = completedTransfersData.filter(t => t.lastReceivedByUid === currentUser.uid).map(t => ({...t, type: 'รับสินค้า', timestamp: t.createdAt}));
-        const issueActivity = allUserIssues.filter(i => i.reportedByUid === currentUser.uid).map(i => ({...i, type: 'รายงานปัญหา', timestamp: i.createdAt}));
-        const foundIssueActivity = allUserIssues.filter(i => i.checkerUid === currentUser.uid).map(i => ({...i, type: 'พบปัญหา', timestamp: i.createdAt}));
+        
+        const createdActivity = allUserTransfers
+            .filter(t => t.createdByUid === currentUser.uid)
+            .map(t => ({...t, type: 'สร้าง', timestamp: t.createdAt}));
+        
+        const checkedActivity = completedTransfersData
+            .filter(t => t.lastCheckedByUid === currentUser.uid)
+            .map(t => ({...t, type: 'เช็คเสร็จ', timestamp: t.createdAt})); // Note: using createdAt for sorting consistency
+        const receivedActivity = completedTransfersData
+            .filter(t => t.lastReceivedByUid === currentUser.uid)
+            .map(t => ({...t, type: 'รับสินค้า', timestamp: t.createdAt}));
+        const issueActivity = allUserIssues
+            .filter(i => i.reportedByUid === currentUser.uid)
+            .map(i => ({...i, type: 'รายงานปัญหา', timestamp: i.createdAt}));
+        const foundIssueActivity = allUserIssues
+            .filter(i => i.checkerUid === currentUser.uid)
+            .map(i => ({...i, type: 'พบปัญหา', timestamp: i.createdAt}));
         const userActivity = [...createdActivity, ...checkedActivity, ...receivedActivity, ...issueActivity, ...foundIssueActivity]
             .sort((a, b) => getMillis(b.timestamp) - getMillis(a.timestamp))
             .slice(0, 5);
@@ -2803,11 +3017,22 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = userActivity.map(item => {
             let actionText = '';
             let actionColor = '';
-            if (item.type === 'เช็คเสร็จ') { actionText = 'คุณเช็ค TFOR นี้เสร็จแล้ว'; actionColor = 'text-green-600'; }
-            else if (item.type === 'รับสินค้า') { actionText = 'คุณรับสินค้า TFOR นี้เสร็จแล้ว'; actionColor = 'text-purple-600'; }
-            else if (item.type === 'สร้าง') { actionText = 'คุณสร้าง TFOR นี้'; actionColor = 'text-blue-600'; }
-            else if (item.type === 'รายงานปัญหา') { actionText = 'คุณรายงานปัญหา'; actionColor = 'text-red-600'; }
-            else if (item.type === 'พบปัญหา') { actionText = 'คุณพบปัญหาใน TFOR นี้'; actionColor = 'text-yellow-600'; }
+            if (item.type === 'เช็คเสร็จ') {
+                actionText = 'คุณเช็ค TFOR นี้เสร็จแล้ว';
+                actionColor = 'text-green-600';
+            } else if (item.type === 'รับสินค้า') {
+                actionText = 'คุณรับสินค้า TFOR นี้เสร็จแล้ว';
+                actionColor = 'text-purple-600';
+            } else if (item.type === 'สร้าง') {
+                actionText = 'คุณสร้าง TFOR นี้';
+                actionColor = 'text-blue-600';
+            } else if (item.type === 'รายงานปัญหา') {
+                actionText = 'คุณรายงานปัญหา';
+                actionColor = 'text-red-600';
+            } else if (item.type === 'พบปัญหา') {
+                actionText = 'คุณพบปัญหาใน TFOR นี้';
+                actionColor = 'text-yellow-600';
+            }
             return `
                 <div class="p-3 bg-gray-50 rounded-lg">
                     <p class="font-semibold">TFOR: ...${item.tforNumber} (${item.branch})</p>
@@ -2816,7 +3041,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
     }
-
+    
     function renderProfileScores() {
         const container = document.getElementById('profile-scores-container');
         if (!container) return;
@@ -2831,6 +3056,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const stars = '★'.repeat(Math.abs(score.score));
             const awardedBy = allUsers.find(u => u.id === score.awardedByUid);
             const awardedByName = awardedBy ? `${awardedBy.firstName} ${awardedBy.lastName}` : 'N/A';
+            
             return `
                 <div class="p-3 bg-gray-50 rounded-lg">
                     <p class="font-semibold">${score.reason} <span class="${starColor}">${stars}</span></p>
@@ -2840,17 +3066,19 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
     }
-
+    
     changePasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const currentPassword = changePasswordForm.querySelector('#current-password').value;
         const newPassword = changePasswordForm.querySelector('#new-password').value;
         const confirmPassword = changePasswordForm.querySelector('#confirm-password').value;
         if (newPassword !== confirmPassword) {
-            showNotification('รหัสผ่านใหม่ไม่ตรงกัน', false); return;
+            showNotification('รหัสผ่านใหม่ไม่ตรงกัน', false);
+            return;
         }
         if (newPassword.length < 6) {
-            showNotification('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร', false); return;
+            showNotification('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร', false);
+            return;
         }
         try {
             const user = auth.currentUser;
@@ -2864,12 +3092,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Password change error:", error);
         }
     });
-
+    
     async function deleteAllInboundData() {
         const button = document.getElementById('delete-all-data-btn');
         button.disabled = true;
         button.innerHTML = `<div class="loading-spinner w-5 h-5 border-white border-t-transparent rounded-full inline-block mr-2"></div> กำลังลบ...`;
         try {
+            // Firestore batches are limited to 500 operations.
+            // This function will process documents in chunks of 400 to be safe.
             const deleteCollection = async (collectionRef) => {
                 let querySnapshot = await getDocs(query(collectionRef));
                 while (querySnapshot.size > 0) {
@@ -2878,11 +3108,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         batch.delete(doc.ref);
                     });
                     await batch.commit();
-                    querySnapshot = await getDocs(query(collectionRef));
+                    querySnapshot = await getDocs(query(collectionRef)); // Re-fetch to see if any remain
                 }
             };
             await deleteCollection(collection(db, "transfers"));
             await deleteCollection(collection(db, "issues"));
+            
             showNotification("ลบข้อมูลของเข้าและปัญหาทั้งหมดสำเร็จ");
         } catch (error) {
             console.error("Error deleting all data:", error);
@@ -2892,21 +3123,24 @@ document.addEventListener('DOMContentLoaded', () => {
              button.textContent = 'ลบข้อมูลของเข้าทั้งหมด (เพื่อทดสอบ)';
         }
     }
-
+    
     document.getElementById('delete-all-data-btn')?.addEventListener('click', () => {
-        showConfirmationModal('คำเตือน! การกระทำนี้จะลบข้อมูล "ของเข้าทั้งหมด" และ "สินค้ามีปัญหา" ทั้งหมดออกจากระบบอย่างถาวร ไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่?', deleteAllInboundData);
+        showConfirmationModal(
+            'คำเตือน! การกระทำนี้จะลบข้อมูล "ของเข้าทั้งหมด" และ "สินค้ามีปัญหา" ทั้งหมดออกจากระบบอย่างถาวร ไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?',
+            deleteAllInboundData
+        );
     });
-
+    
     document.getElementById('backup-restore-btn')?.addEventListener('click', () => {
         backupModal.classList.remove('hidden');
         backupModal.classList.add('flex');
     });
-
+    
     document.getElementById('backup-modal-cancel')?.addEventListener('click', () => {
         backupModal.classList.add('hidden');
         backupModal.classList.remove('flex');
     });
-
+    
     document.getElementById('backup-data-btn').addEventListener('click', async () => {
         const allData = {
             transfers: [...allTransfersData, ...completedTransfersData],
@@ -2931,7 +3165,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     restoreFileInput.addEventListener('change', (e) => {
         restoreFile = e.target.files[0];
-        restoreDataBtn.disabled = !restoreFile;
+        if (restoreFile) {
+            restoreDataBtn.disabled = false;
+        } else {
+            restoreDataBtn.disabled = true;
+        }
     });
     
     restoreDataBtn.addEventListener('click', () => {
@@ -2948,11 +3186,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         restoreDataBtn.disabled = true;
                         restoreDataBtn.innerHTML = `<div class="loading-spinner w-5 h-5 border-white border-t-transparent rounded-full inline-block mr-2"></div> กำลังกู้คืน...`;
                         
+                        // This is a simplified restore. A real-world scenario would need more robust error handling and batching.
                         const batch = writeBatch(db);
-                        data.transfers.forEach(item => { const { id, ...itemData } = item; batch.set(doc(db, "transfers", id), itemData); });
-                        data.issues.forEach(item => { const { id, ...itemData } = item; batch.set(doc(db, "issues", id), itemData); });
-                        data.scores.forEach(item => { const { id, ...itemData } = item; batch.set(doc(db, "scores", id), itemData); });
-                        data.starPoints.forEach(item => { const { id, ...itemData } = item; batch.set(doc(db, "starPoints", id), itemData); });
+                        data.transfers.forEach(item => {
+                            const { id, ...itemData } = item; // Separate ID from data
+                            batch.set(doc(db, "transfers", id), itemData);
+                        });
+                        data.issues.forEach(item => {
+                             const { id, ...itemData } = item;
+                            batch.set(doc(db, "issues", id), itemData);
+                        });
+                        data.scores.forEach(item => {
+                             const { id, ...itemData } = item;
+                            batch.set(doc(db, "scores", id), itemData);
+                        });
+                        data.starPoints.forEach(item => {
+                             const { id, ...itemData } = item;
+                            batch.set(doc(db, "starPoints", id), itemData);
+                        });
                         await batch.commit();
                         showNotification("กู้คืนข้อมูลสำเร็จ!");
                         backupModal.classList.add('hidden');
@@ -2972,6 +3223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
+    // LOG Function
     async function logAction(action, details) {
         try {
             await addDoc(collection(db, "logs"), {
@@ -2986,4 +3238,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-
