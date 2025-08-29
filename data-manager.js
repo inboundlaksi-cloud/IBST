@@ -1,3 +1,4 @@
+// Import necessary modules
 import { db } from './firebase-config.js';
 import { collection, getDocs, addDoc, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 import { showNotification, showLoading, hideLoading, showConfirmation } from './ui-manager.js';
@@ -100,7 +101,6 @@ export async function backupData() {
     
     hideLoading();
 }
-
 // Restore data
 export async function restoreData() {
     const fileInput = document.getElementById('restore-file-input');
@@ -291,4 +291,5 @@ export async function deleteAllData() {
     }
     
     hideLoading();
+
 }
