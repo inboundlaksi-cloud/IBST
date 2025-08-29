@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 // Your Gemini API Key - Updated with the provided key
-const geminiApiKey = "AIzaSyBNDp-YoQf1qC4VEYpKy5MGVWCpX1i2Sf0";
+const geminiApiKey = "AIzaSyAVxhKKuLVWKQzAh9XTNITsQ4LF3_TlNzg";
 async function callGeminiAPI(prompt) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
     const payload = {
@@ -612,6 +612,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             <div class="mb-4">
+                <label class="block text-gray-700 font-semibold mb-2">TFOR ที่พ่วงมา (ถ้ามี)</label>
+                <div class="flex items-center">
+                    <span class="bg-gray-200 text-gray-600 px-4 py-2 rounded-l-lg font-mono">TFOR${year}000</span>
+                    <input type="text" maxlength="4" placeholder="5678" class="linked-tfor-input w-24 border-gray-300 shadow-sm">
+                    <button type="button" class="add-linked-tfor-btn ml-2 px-3 py-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600">+</button>
+                </div>
+                <div class="linked-tfor-list mt-2 space-y-1"></div>
+            </div>
+            <div class="mb-4">
                 <label class="block text-gray-700 font-semibold mb-2">สาขาต้นทาง</label>
                 <select class="w-full rounded-lg border-gray-300 shadow-sm">
                     <option value="">เลือกสาขา</option>
@@ -647,6 +656,33 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         tforBlock.querySelector('.remove-tfor-button').addEventListener('click', () => tforBlock.remove());
+
+        // Listeners for Linked TFORs
+        const addBtn = tforBlock.querySelector('.add-linked-tfor-btn');
+        const input = tforBlock.querySelector('.linked-tfor-input');
+        const list = tforBlock.querySelector('.linked-tfor-list');
+        const year = new Date().getFullYear().toString().substr(-2);
+
+        addBtn.addEventListener('click', () => {
+            const tforValue = input.value.trim();
+            if (tforValue && /^\d{4}$/.test(tforValue)) {
+                const fullTfor = `TFOR${year}000${tforValue}`;
+                const listItem = document.createElement('div');
+                listItem.className = 'flex items-center justify-between bg-gray-100 p-1 rounded';
+                listItem.innerHTML = `
+                    <span class="text-sm font-mono">${fullTfor}</span>
+                    <button type="button" class="remove-linked-tfor text-red-500 font-bold px-2">&times;</button>
+                `;
+                list.appendChild(listItem);
+                listItem.querySelector('.remove-linked-tfor').addEventListener('click', () => {
+                    listItem.remove();
+                });
+                input.value = '';
+                input.focus();
+            } else {
+                showNotification('กรุณากรอกเลข TFOR 4 หลัก', false);
+            }
+        });
     }
     
     inboundForm.addEventListener('submit', async (e) => {
@@ -688,6 +724,9 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const block of tforBlocks) {
                 const palletNumbers = block.querySelector('.pallet-count-input').value.split(',').filter(Boolean);
                 const palletNotes = block.querySelector('.pallet-notes').value;
+                const linkedTforElements = block.querySelectorAll('.linked-tfor-list span');
+                const linkedTfors = Array.from(linkedTforElements).map(span => span.textContent);
+
                 const tforData = {
                     deliveryDate, licensePlate,
                     images: uploadedImagesBase64,
@@ -698,6 +737,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     palletNumbers,
                     palletCount: palletNumbers.length,
                     palletNotes: palletNotes,
+                    linkedTfors: linkedTfors,
                     checkedPallets: [],
                     receivedPallets: [],
                     isCompleted: false,
@@ -954,10 +994,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('details-table-container');
         let filteredData = allTransfersData.filter(d => !d.scheduledDate && !d.isReceived);
         if (filter) {
+            const lowerCaseFilter = filter.toLowerCase();
             filteredData = filteredData.filter(d => 
                 (d.tforNumber || '').endsWith(filter) || 
-                (d.licensePlate || '').toLowerCase().includes(filter.toLowerCase()) ||
-                (d.branch || '').toLowerCase().includes(filter.toLowerCase())
+                (d.licensePlate || '').toLowerCase().includes(lowerCaseFilter) ||
+                (d.branch || '').toLowerCase().includes(lowerCaseFilter) ||
+                (d.linkedTfors && d.linkedTfors.some(lt => lt.toLowerCase().includes(lowerCaseFilter)))
             );
         }
         if (sortBy === 'date-desc') filteredData.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
@@ -1321,8 +1363,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div><p class="text-sm font-semibold text-red-500">ควรเช็คก่อนวันที่</p><p class="text-lg font-bold text-red-600">${dueDateString}</p></div>
                 <div class="md:col-span-2"><p class="text-sm font-semibold text-gray-500">หมายเหตุพาเลท</p><p class="text-lg font-bold">${currentTforData.palletNotes || '-'}</p></div>
             </div>
+            <div id="linked-tfor-display" class="mt-4"></div>
             <div class="mt-4"><p class="text-sm font-semibold text-gray-500 mb-2">รูปภาพรวม</p>${imagesHTML}</div>
         `;
+
+        const linkedTforContainer = document.getElementById('linked-tfor-display');
+        if (currentTforData.linkedTfors && currentTforData.linkedTfors.length > 0) {
+            linkedTforContainer.innerHTML = `
+                <p class="text-sm font-semibold text-gray-500">TFOR ที่พ่วงมา</p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    ${currentTforData.linkedTfors.map(lt => `<span class="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded">${lt}</span>`).join('')}
+                </div>
+            `;
+        } else {
+            linkedTforContainer.innerHTML = '';
+        }
         
         palletButtonsContainer.innerHTML = '';
         receivePalletButtonsContainer.innerHTML = '';
@@ -1423,7 +1478,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <textarea class="issue-other-details hidden mt-2 w-full rounded-md border-gray-300 shadow-sm" placeholder="ระบุรายละเอียด..."></textarea>
                 </div>
-                <!-- Add notes field for issues -->
                 <div>
                     <label class="block text-sm font-medium">หมายเหตุ</label>
                     <textarea class="issue-notes mt-1 w-full rounded-md border-gray-300 shadow-sm" placeholder="ระบุหมายเหตุเพิ่มเติม..."></textarea>
@@ -1734,16 +1788,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.appendChild(thinkingBubble);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         const dataContext = JSON.stringify({transfers: allTransfersData, issues: issuesData});
-        const fullPrompt = `คุณคือ "INBOUND-ASSISTANT" ผู้ช่วย AI อารมณ์ดีและเชี่ยวชาญของ "INBOUND SYSTEM"
-        หน้าที่ของคุณคือ:
-        1.  **ตอบคำถาม:** ตอบคำถามของผู้ใช้เกี่ยวกับข้อมูล TFORs, ปัญหา, และสถิติต่างๆ โดยใช้ข้อมูลจาก JSON ที่ให้มาเป็นหลัก
-        2.  **ให้คำแนะนำ:** สอนวิธีใช้งานระบบ, ให้คำแนะนำ, และเสนอแนวทางที่เป็นประโยชน์ เช่น "ถ้าต้องการดูรายการที่ยังไม่เช็ค ให้ไปที่เมนู Transfers > รายละเอียดข้อมูล นะครับ"
-        3.  **สนทนาอย่างเป็นธรรมชาติ:** ใช้ภาษาที่เป็นมิตร, เข้าใจง่าย, มีลูกเล่นได้เล็กน้อยเพื่อให้การสนทนาไม่น่าเบื่อ
-        4.  **ยอมรับเมื่อไม่รู้:** หากข้อมูลไม่มีใน JSON และเป็นคำถามเฉพาะทาง ให้ตอบอย่างสุภาพว่า "ผมไม่พบข้อมูลนั้นในระบบครับ แต่สามารถแนะนำเรื่องอื่นๆ ได้นะครับ"
-        5.  **สรุปข้อมูล:** ถ้าผู้ใช้ขอสรุปข้อมูล เช่น "วันนี้มีรถเข้ากี่คัน" ให้สรุปจากข้อมูล JSON ที่มี
-        **ข้อมูลล่าสุดจากระบบ (JSON):** ${dataContext}
-        **คำถามจากผู้ใช้:** "${userMessage}"
-        โปรดตอบคำถามนี้ตามบทบาทของคุณ:`;
+        const fullPrompt = `คุณคือผู้ช่วย AI ของ INBOUND SYSTEM. จงตอบคำถามต่อไปนี้ให้กระชับและสั้นที่สุด โดยใช้ข้อมูลจาก JSON ที่ให้มาเท่านั้น ห้ามใช้ความรู้ทั่วไปในการตอบ. หากข้อมูลไม่มีใน JSON ให้ตอบว่า "ไม่พบข้อมูล". ข้อมูล JSON: ${dataContext} คำถาม: "${userMessage}"`;
         try {
             const aiResponse = await callGeminiAPI(fullPrompt);
             thinkingBubble.remove();
