@@ -1,3 +1,4 @@
+// Import necessary modules
 import { db } from './firebase-config.js';
 import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, getDocs, query, where, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 import { showNotification, showLoading, hideLoading, showConfirmation } from './ui-manager.js';
@@ -657,3 +658,4 @@ export async function togglePalletCheck(tforId, palletNumber, button, type) {
         showNotification('เกิดข้อผิดพลาด', 'error');
     }
 }
+
