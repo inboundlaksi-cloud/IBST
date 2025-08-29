@@ -1,3 +1,4 @@
+// Import necessary modules
 import { db } from './firebase-config.js';
 import { collection, getDocs, query, where, orderBy, getDoc, doc, updateDoc, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 import { showNotification, showConfirmation } from './ui-manager.js';
@@ -363,4 +364,5 @@ export function showIssueForm(tfor, palletNumber, existingIssues) {
             showNotification('เกิดข้อผิดพลาดในการบันทึกรายงานปัญหา', 'error');
         }
     });
+
 }
