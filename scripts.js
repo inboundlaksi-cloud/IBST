@@ -1998,12 +1998,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderAdvancedStatistics(timeframe = 'month') {
-        // ... (This function remains the same)
-    }
-    
-    // ... [All other functions are here]
+    }    
 });
-
     function showSchedulingModalForTransfer(transferData) {
         const arrivalDate = parseThaiDate(transferData.deliveryDate);
         let dueDateString = 'N/A';
