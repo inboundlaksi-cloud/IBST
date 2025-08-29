@@ -44,9 +44,6 @@ export async function loadUserData() {
         console.error('Error loading user data:', error);
     }
 }
-
-// ฟังก์ชันอื่นๆ ตามเดิม...
-
 // Load default avatars
 function loadDefaultAvatars() {
     const container = document.getElementById('default-avatar-container');
@@ -398,4 +395,5 @@ export async function loadProfileData() {
     
     hideLoading();
 }
+
 
