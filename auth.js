@@ -1,7 +1,5 @@
-// Import necessary modules
 import { auth } from './firebase-config.js';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-import { doc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 import { showNotification, showLoading, hideLoading } from './ui-manager.js';
 import { loadUserData } from './user-management.js';
 
