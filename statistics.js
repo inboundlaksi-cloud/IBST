@@ -1,3 +1,4 @@
+// Import necessary modules
 import { db } from './firebase-config.js';
 import { collection, getDocs, query, where, orderBy, getDoc, doc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 import { showNotification, showLoading, hideLoading } from './ui-manager.js';
@@ -61,7 +62,6 @@ export async function loadStatistics(timeframe = 'month') {
     
     hideLoading();
 }
-
 // Get statistics data
 export async function getStatisticsData(startDate, endDate) {
     const stats = {
@@ -668,4 +668,5 @@ export function exportToPDF() {
         showNotification('เกิดข้อผิดพลาดในการส่งออก PDF', 'error');
         hideLoading();
     }
+
 }
