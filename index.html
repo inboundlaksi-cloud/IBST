@@ -199,6 +199,17 @@
                         <span id="user-role-display" class="hidden px-3 py-1 text-xs font-bold text-white bg-fuchsia-500 rounded-full"></span>
                     </div>
                     <div class="flex items-center space-x-4">
+                        <div id="notification-bell-container" class="relative">
+                            <button id="notification-bell-btn" class="text-gray-600 hover:text-fuchsia-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            </button>
+                            <span id="notification-badge" class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hidden">0</span>
+                            <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-20 hidden">
+                                <div class="p-4 font-bold border-b">TFORs ที่เลยกำหนด</div>
+                                <div id="notification-list" class="p-2 max-h-64 overflow-y-auto">
+                                    </div>
+                            </div>
+                        </div>
                         <button id="profile-button" class="px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">โปรไฟล์</button>
                         <button id="logout-button-main" class="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600">ออกจากระบบ</button>
                     </div>
@@ -582,6 +593,14 @@
                         <button id="back-to-previous-view-button" class="mb-8 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700">กลับ</button>
                         <h2 id="check-view-title" class="text-3xl font-bold text-gray-900 mb-8 text-center">เช็คสินค้า</h2>
                         <div id="check-details-container" class="mb-8 p-6 bg-gray-50 rounded-2xl shadow-inner"></div>
+                        
+                        <hr class="my-6">
+                        <div id="performance-timer-section">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">จับเวลาประสิทธิภาพ</h3>
+                            <div id="timer-display-container" class="flex items-center gap-4">
+                                </div>
+                        </div>
+
                         <hr class="my-6">
                         <div id="check-section">
                             <h3 class="text-xl font-bold text-gray-800 mb-4">ยืนยันการเช็คสินค้า</h3>
@@ -597,6 +616,16 @@
                              <h3 class="text-xl font-bold text-gray-800 mb-4">รายงานปัญหาทั้งหมด</h3>
                             <div id="issue-pallet-buttons-container" class="flex flex-wrap gap-2 mb-6"></div>
                             <div id="issue-forms-container"></div>
+                        </div>
+                         <hr class="my-6">
+                        <div id="comment-section">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">ความคิดเห็น / Log</h3>
+                            <div id="comments-display-container" class="space-y-3 max-h-60 overflow-y-auto bg-gray-50 p-3 rounded-lg mb-4">
+                                </div>
+                            <form id="comment-form" class="flex gap-2">
+                                <input type="text" id="comment-input" placeholder="เพิ่มความคิดเห็น..." class="flex-grow p-2 border rounded-lg">
+                                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">ส่ง</button>
+                            </form>
                         </div>
                     </div>
                 </div>
