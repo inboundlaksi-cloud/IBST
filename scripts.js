@@ -1,4 +1,3 @@
-// scripts.js
 // Firebase Core and Auth
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -19,19 +18,25 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 // Your Gemini API Key - Updated with the provided key
 const geminiApiKey = "AIzaSyBNDp-YoQf1qC4VEYpKy5MGVWCpX1i2Sf0";
+
+// แก้ไขฟังก์ชัน callGeminiAPI เพื่อประหยัด token
 async function callGeminiAPI(prompt) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
+    
+    // จำกัดความยาวของ prompt เพื่อประหยัด token
+    const truncatedPrompt = prompt.length > 3000 ? prompt.substring(0, 3000) + "..." : prompt;
+    
     const payload = {
         contents: [{
             parts: [{
-                text: prompt
+                text: truncatedPrompt
             }]
         }],
         generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 1024,
+            temperature: 0.3, // ลดค่า temperature ให้ตอบตรงไปตรงมา
+            topK: 20,
+            topP: 0.8,
+            maxOutputTokens: 800, // จำกัดความยาวของคำตอบ
         },
         safetySettings: [
             {
@@ -81,6 +86,7 @@ async function callGeminiAPI(prompt) {
         throw error;
     }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     // Hide loading container when page is fully loaded
     const loadingContainer = document.getElementById('loading-container');
@@ -594,6 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const branches = ['WH.40 (NDC)', 'WH.61 Chiangmai', 'WH.62 Suratthani', 'WH.63 Nakhon Ratchasima', 'WH.64 Leamchabang', 'WH.65 Udon Thani', 'WH.66 Phitsanulok', 'WH.67 Ratchaburi', 'WH.68 Hat Yai'];
     
+    // แก้ไขฟังก์ชัน addTforBlock เพื่อเพิ่มช่อง TFOR ที่พ่วงมา
     function addTforBlock() {
         const year = new Date().getFullYear().toString().substr(-2);
         const tforBlock = document.createElement('div');
@@ -611,6 +618,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="text" maxlength="4" placeholder="1234" class="w-24 rounded-r-lg border-gray-300 shadow-sm">
                 </div>
             </div>
+            
+            <!-- เพิ่มส่วนสำหรับ TFOR ที่พ่วงมา -->
+            <div class="mb-4">
+                <label class="block text-gray-700 font-semibold mb-2">TFOR ที่พ่วงมา (ถ้ามี)</label>
+                <div id="attached-tfor-container-${Date.now()}" class="space-y-2">
+                    <!-- ช่อง TFOR ที่พ่วงมาจะถูกเพิ่มที่นี่ -->
+                </div>
+                <button type="button" class="add-attached-tfor-btn mt-2 px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">+ เพิ่ม TFOR ที่พ่วงมา</button>
+            </div>
+            
             <div class="mb-4">
                 <label class="block text-gray-700 font-semibold mb-2">สาขาต้นทาง</label>
                 <select class="w-full rounded-lg border-gray-300 shadow-sm">
@@ -631,6 +648,36 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         document.getElementById('tfor-container').appendChild(tforBlock);
         addTforBlockListeners(tforBlock);
+        
+        // เพิ่ม event listener สำหรับปุ่มเพิ่ม TFOR ที่พ่วงมา
+        const addAttachedTforBtn = tforBlock.querySelector('.add-attached-tfor-btn');
+        addAttachedTforBtn.addEventListener('click', function() {
+            const containerId = this.previousElementSibling.id;
+            addAttachedTforField(containerId);
+        });
+    }
+    
+    // เพิ่มฟังก์ชันสำหรับสร้างช่องใส่ TFOR ที่พ่วงมา
+    function addAttachedTforField(containerId) {
+        const container = document.getElementById(containerId);
+        const year = new Date().getFullYear().toString().substr(-2);
+        const attachedTforDiv = document.createElement('div');
+        attachedTforDiv.className = 'flex items-center gap-2 attached-tfor-field';
+        attachedTforDiv.innerHTML = `
+            <span class="bg-gray-200 text-gray-600 px-3 py-1 rounded-l-lg font-mono text-sm">TFOR${year}000</span>
+            <input type="text" maxlength="4" placeholder="1234" class="w-20 rounded-r-lg border-gray-300 shadow-sm text-sm">
+            <button type="button" class="remove-attached-tfor text-red-500 hover:text-red-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        `;
+        container.appendChild(attachedTforDiv);
+        
+        // เพิ่ม event listener สำหรับปุ่มลบ
+        attachedTforDiv.querySelector('.remove-attached-tfor').addEventListener('click', function() {
+            attachedTforDiv.remove();
+        });
     }
     
     document.getElementById('add-tfor-button').addEventListener('click', addTforBlock);
@@ -649,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tforBlock.querySelector('.remove-tfor-button').addEventListener('click', () => tforBlock.remove());
     }
     
+    // แก้ไขฟังก์ชัน inboundForm.addEventListener('submit') เพื่อบันทึก TFOR ที่พ่วงมา
     inboundForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -688,12 +736,24 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const block of tforBlocks) {
                 const palletNumbers = block.querySelector('.pallet-count-input').value.split(',').filter(Boolean);
                 const palletNotes = block.querySelector('.pallet-notes').value;
+                
+                // เก็บค่า TFOR ที่พ่วงมา
+                const attachedTfors = [];
+                const attachedTforFields = block.querySelectorAll('.attached-tfor-field input[type="text"]');
+                attachedTforFields.forEach(field => {
+                    if (field.value.trim()) {
+                        attachedTfors.push(field.value.trim());
+                    }
+                });
+                
                 const tforData = {
-                    deliveryDate, licensePlate,
+                    deliveryDate, 
+                    licensePlate,
                     images: uploadedImagesBase64,
                     isNoTFOR: block.querySelector('.tfor-no-tfor-check').checked,
                     isNoLabel: block.querySelector('.tfor-no-label-check').checked,
                     tforNumber: block.querySelector('input[type="text"][maxlength="4"]').value.trim(),
+                    attachedTfors: attachedTfors, // เพิ่มฟิลด์นี้เพื่อเก็บ TFOR ที่พ่วงมา
                     branch: block.querySelector('select').value,
                     palletNumbers,
                     palletCount: palletNumbers.length,
@@ -950,21 +1010,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // แก้ไขฟังก์ชัน renderDetailsTable เพื่อรองรับการค้นหา TFOR ที่พ่วงมา
     function renderDetailsTable(filter = '', sortBy = 'date-desc') {
         const container = document.getElementById('details-table-container');
         let filteredData = allTransfersData.filter(d => !d.scheduledDate && !d.isReceived);
+        
         if (filter) {
-            filteredData = filteredData.filter(d => 
-                (d.tforNumber || '').endsWith(filter) || 
-                (d.licensePlate || '').toLowerCase().includes(filter.toLowerCase()) ||
-                (d.branch || '').toLowerCase().includes(filter.toLowerCase())
-            );
+            filteredData = filteredData.filter(d => {
+                // ค้นหาจาก TFOR หลัก
+                const mainTforMatch = (d.tforNumber || '').endsWith(filter);
+                
+                // ค้นหาจาก TFOR ที่พ่วงมา
+                let attachedTforMatch = false;
+                if (d.attachedTfors && d.attachedTfors.length > 0) {
+                    attachedTforMatch = d.attachedTfors.some(tfor => tfor.endsWith(filter));
+                }
+                
+                // ค้นหาจากทะเบียนรถหรือสาขา
+                const licensePlateMatch = (d.licensePlate || '').toLowerCase().includes(filter.toLowerCase());
+                const branchMatch = (d.branch || '').toLowerCase().includes(filter.toLowerCase());
+                
+                return mainTforMatch || attachedTforMatch || licensePlateMatch || branchMatch;
+            });
         }
+        
         if (sortBy === 'date-desc') filteredData.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
         else if (sortBy === 'date-asc') filteredData.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
         else if (sortBy === 'branch-asc') filteredData.sort((a, b) => (a.branch || '').localeCompare(b.branch || ''));
+        
         container.innerHTML = filteredData.length === 0 ? `<p class="text-gray-500 text-center">ไม่พบข้อมูล</p>` : '';
         if(filteredData.length === 0) return;
+        
         const table = document.createElement('table');
         table.className = 'min-w-full bg-white rounded-lg shadow';
         table.innerHTML = `
@@ -980,11 +1056,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr></thead>
             <tbody class="bg-white divide-y divide-gray-200"></tbody>`;
         const tbody = table.querySelector('tbody');
+        
         filteredData.forEach(data => {
             let statusText = 'ยังไม่เช็ค';
             let statusColor = 'bg-gray-100 text-gray-800';
             
-            // New status for "รอรับสินค้า" (waiting for product receipt)
             if (data.checkedPallets && data.checkedPallets.length > 0 && !data.isReceived) {
                 statusText = 'รอรับสินค้า';
                 statusColor = 'bg-blue-100 text-blue-800';
@@ -996,12 +1072,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusColor = 'bg-yellow-100 text-yellow-800';
             }
             
+            // สร้างข้อความแสดง TFOR ที่พ่วงมา
+            let tforDisplay = `...${data.tforNumber}`;
+            if (data.attachedTfors && data.attachedTfors.length > 0) {
+                tforDisplay += ` <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">+${data.attachedTfors.length}</span>`;
+            }
+            
             const row = tbody.insertRow();
             row.className = 'hover:bg-gray-50 cursor-pointer';
             row.innerHTML = `
                 <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${statusText}</span></td>
                 <td class="px-6 py-4 text-sm">${formatDateAbbreviated(data.deliveryDate)}</td>
-                <td class="px-6 py-4 text-sm">...${data.tforNumber}</td>
+                <td class="px-6 py-4 text-sm">${tforDisplay}</td>
                 <td class="px-6 py-4 text-sm">${data.branch}</td>
                 <td class="px-6 py-4 text-sm">${data.licensePlate}</td>
                 <td class="px-6 py-4 text-sm">${data.palletCount}</td>
@@ -1296,6 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return date;
     }
     
+    // แก้ไขฟังก์ชัน renderCheckView เพื่อแสดง TFOR ที่พ่วงมา
     function renderCheckView() {
         previousView = detailsView;
         const detailsContainer = document.getElementById('check-details-container');
@@ -1310,9 +1393,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const dueDate = calculateDueDate(arrivalDate);
             dueDateString = dueDate.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
         }
+        
         const imagesHTML = (currentTforData.images && currentTforData.images.length > 0) 
             ? `<div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">${currentTforData.images.map(img => `<a href="${img}" target="_blank"><img src="${img}" class="h-32 w-full object-cover rounded-lg shadow-md"></a>`).join('')}</div>`
             : '<p class="text-sm text-gray-500 mt-2">ไม่มีรูปภาพ</p>';
+        
+        // สร้างส่วนแสดง TFOR ที่พ่วงมา
+        let attachedTforsHTML = '';
+        if (currentTforData.attachedTfors && currentTforData.attachedTfors.length > 0) {
+            attachedTforsHTML = `
+                <div class="mt-3">
+                    <p class="text-sm font-semibold text-blue-600">TFOR ที่พ่วงมา:</p>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        ${currentTforData.attachedTfors.map(tfor => 
+                            `<span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">...${tfor}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
         detailsContainer.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <div><p class="text-sm font-semibold text-gray-500">TFOR / ทะเบียนรถ</p><p class="text-lg font-bold">...${currentTforData.tforNumber} / ${currentTforData.licensePlate}</p></div>
@@ -1321,6 +1421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div><p class="text-sm font-semibold text-red-500">ควรเช็คก่อนวันที่</p><p class="text-lg font-bold text-red-600">${dueDateString}</p></div>
                 <div class="md:col-span-2"><p class="text-sm font-semibold text-gray-500">หมายเหตุพาเลท</p><p class="text-lg font-bold">${currentTforData.palletNotes || '-'}</p></div>
             </div>
+            ${attachedTforsHTML}
             <div class="mt-4"><p class="text-sm font-semibold text-gray-500 mb-2">รูปภาพรวม</p>${imagesHTML}</div>
         `;
         
@@ -1722,34 +1823,74 @@ document.addEventListener('DOMContentLoaded', () => {
     
     addChatMessage('สวัสดีครับ ผม INBOUND-ASSISTANT ผู้ช่วย AI อารมณ์ดี พร้อมให้บริการครับ! ไม่ว่าจะเป็นการค้นหาข้อมูล TFOR, สรุปยอด, หรือขั้นตอนการใช้งานต่างๆ ถามมาได้เลยครับ!', 'ai');
     
+    // แก้ไขส่วน chatForm.addEventListener('submit') เพื่อประหยัด token
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const userMessage = chatInput.value.trim();
         if (!userMessage) return;
         addChatMessage(userMessage, 'user');
         chatInput.value = '';
-        const thinkingBubble = document.createElement('div');
-        thinkingBubble.classList.add('chat-bubble', 'ai-bubble');
-        thinkingBubble.textContent = 'กำลังประมวลผล...';
-        chatMessages.appendChild(thinkingBubble);
+        
+        // แสดงสถานะการโหลดที่สวยงาม
+        const loadingBubble = document.createElement('div');
+        loadingBubble.className = 'loading-bubble';
+        loadingBubble.innerHTML = `
+            <div class="loading-dots">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            </div>
+            <span>กำลังประมวลผล...</span>
+        `;
+        chatMessages.appendChild(loadingBubble);
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        const dataContext = JSON.stringify({transfers: allTransfersData, issues: issuesData});
-        const fullPrompt = `คุณคือ "INBOUND-ASSISTANT" ผู้ช่วย AI อารมณ์ดีและเชี่ยวชาญของ "INBOUND SYSTEM"
-        หน้าที่ของคุณคือ:
-        1.  **ตอบคำถาม:** ตอบคำถามของผู้ใช้เกี่ยวกับข้อมูล TFORs, ปัญหา, และสถิติต่างๆ โดยใช้ข้อมูลจาก JSON ที่ให้มาเป็นหลัก
-        2.  **ให้คำแนะนำ:** สอนวิธีใช้งานระบบ, ให้คำแนะนำ, และเสนอแนวทางที่เป็นประโยชน์ เช่น "ถ้าต้องการดูรายการที่ยังไม่เช็ค ให้ไปที่เมนู Transfers > รายละเอียดข้อมูล นะครับ"
-        3.  **สนทนาอย่างเป็นธรรมชาติ:** ใช้ภาษาที่เป็นมิตร, เข้าใจง่าย, มีลูกเล่นได้เล็กน้อยเพื่อให้การสนทนาไม่น่าเบื่อ
-        4.  **ยอมรับเมื่อไม่รู้:** หากข้อมูลไม่มีใน JSON และเป็นคำถามเฉพาะทาง ให้ตอบอย่างสุภาพว่า "ผมไม่พบข้อมูลนั้นในระบบครับ แต่สามารถแนะนำเรื่องอื่นๆ ได้นะครับ"
-        5.  **สรุปข้อมูล:** ถ้าผู้ใช้ขอสรุปข้อมูล เช่น "วันนี้มีรถเข้ากี่คัน" ให้สรุปจากข้อมูล JSON ที่มี
-        **ข้อมูลล่าสุดจากระบบ (JSON):** ${dataContext}
-        **คำถามจากผู้ใช้:** "${userMessage}"
-        โปรดตอบคำถามนี้ตามบทบาทของคุณ:`;
+        
+        // สร้างข้อมูลที่กระชับสำหรับส่งไปยัง AI
+        const compactData = {
+            transfers: allTransfersData.map(t => ({
+                id: t.id,
+                tforNumber: t.tforNumber,
+                licensePlate: t.licensePlate,
+                branch: t.branch,
+                deliveryDate: t.deliveryDate,
+                isCompleted: t.isCompleted,
+                isReceived: t.isReceived,
+                palletCount: t.palletCount,
+                attachedTfors: t.attachedTfors || []
+            })).slice(0, 20), // จำกัดจำนวนรายการที่ส่งไป
+            issues: Object.values(issuesData).flat().map(i => ({
+                id: i.id,
+                issueTypes: i.issueTypes,
+                reportDate: i.reportDate,
+                tforNumber: i.tforNumber
+            })).slice(0, 15) // จำกัดจำนวนรายการที่ส่งไป
+        };
+        
+        const dataContext = JSON.stringify(compactData);
+        
+        // Prompt ที่เจาะจงและกระชับขึ้น
+        const fullPrompt = `คุณคือ "INBOUND-ASSISTANT" ผู้ช่วย AI สำหรับระบบ INBOUND
+        หน้าที่: ตอบคำถามเฉพาะจากข้อมูลที่ให้มาเท่านั้น อย่าแต่งเติมข้อมูลนอกเหนือจากนี้
+        
+        ข้อมูลปัจจุบัน (JSON):
+        ${dataContext}
+        
+        คำถาม: "${userMessage}"
+        
+        วิธีตอบ:
+        1. ตอบสั้นกระชับ ไม่เกิน 3-4 ประโยค
+        2. ใช้เฉพาะข้อมูลจาก JSON ที่ให้มา
+        3. ถ้าไม่พบข้อมูลให้ตอบว่า "ไม่พบข้อมูลในระบบ"
+        4. ไม่ต้องแสดงข้อมูล JSON ในคำตอบ
+        
+        ตอบ:`;
+        
         try {
             const aiResponse = await callGeminiAPI(fullPrompt);
-            thinkingBubble.remove();
+            loadingBubble.remove();
             addChatMessage(aiResponse, 'ai');
         } catch (error) {
-            thinkingBubble.textContent = 'ขออภัยค่ะ ระบบ AI กำลังมีผู้ใช้งานจำนวนมาก กรุณาลองใหม่อีกครั้ง';
+            loadingBubble.textContent = 'ขออภัยค่ะ ระบบ AI กำลังมีผู้ใช้งานจำนวนมาก กรุณาลองใหม่อีกครั้ง';
             console.error("AI Error:", error);
         }
     });
@@ -2796,7 +2937,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                     </div>
                 </div>
-            `}).join('');
+            `).join('');
         }
         container.innerHTML = `
             <button id="back-to-kpi-summary" class="mb-6 px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700">← กลับไปที่สรุป</button>
@@ -3184,264 +3325,4 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUserDisplays(currentUserProfile);
             showNotification('อัปเดตโปรไฟล์สำเร็จ!');
             showMainView(views.mainMenu);
-        } catch (error) {
-            showNotification('เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์', false);
-            console.error("Profile update error:", error);
-        } finally {
-            button.disabled = false;
-            button.textContent = 'บันทึกการเปลี่ยนแปลง';
         }
-    });
-    
-    function renderRecentActivity() {
-        const container = document.getElementById('recent-activity-container');
-        const allUserTransfers = [...allTransfersData, ...completedTransfersData];
-        const allUserIssues = Object.values(issuesData).flat();
-        
-        const createdActivity = allUserTransfers
-            .filter(t => t.createdByUid === currentUser.uid)
-            .map(t => ({...t, type: 'สร้าง', timestamp: t.createdAt}));
-        
-        const checkedActivity = completedTransfersData
-            .filter(t => t.lastCheckedByUid === currentUser.uid)
-            .map(t => ({...t, type: 'เช็คเสร็จ', timestamp: t.createdAt})); // Note: using createdAt for sorting consistency
-        const receivedActivity = completedTransfersData
-            .filter(t => t.lastReceivedByUid === currentUser.uid)
-            .map(t => ({...t, type: 'รับสินค้า', timestamp: t.createdAt}));
-        const issueActivity = allUserIssues
-            .filter(i => i.reportedByUid === currentUser.uid)
-            .map(i => ({...i, type: 'รายงานปัญหา', timestamp: i.createdAt}));
-        const foundIssueActivity = allUserIssues
-            .filter(i => i.checkerUid === currentUser.uid)
-            .map(i => ({...i, type: 'พบปัญหา', timestamp: i.createdAt}));
-        const userActivity = [...createdActivity, ...checkedActivity, ...receivedActivity, ...issueActivity, ...foundIssueActivity]
-            .sort((a, b) => getMillis(b.timestamp) - getMillis(a.timestamp))
-            .slice(0, 5);
-        if (userActivity.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-center">ไม่มีกิจกรรมล่าสุด</p>';
-            return;
-        }
-        container.innerHTML = userActivity.map(item => {
-            let actionText = '';
-            let actionColor = '';
-            if (item.type === 'เช็คเสร็จ') {
-                actionText = 'คุณเช็ค TFOR นี้เสร็จแล้ว';
-                actionColor = 'text-green-600';
-            } else if (item.type === 'รับสินค้า') {
-                actionText = 'คุณรับสินค้า TFOR นี้เสร็จแล้ว';
-                actionColor = 'text-purple-600';
-            } else if (item.type === 'สร้าง') {
-                actionText = 'คุณสร้าง TFOR นี้';
-                actionColor = 'text-blue-600';
-            } else if (item.type === 'รายงานปัญหา') {
-                actionText = 'คุณรายงานปัญหา';
-                actionColor = 'text-red-600';
-            } else if (item.type === 'พบปัญหา') {
-                actionText = 'คุณพบปัญหาใน TFOR นี้';
-                actionColor = 'text-yellow-600';
-            }
-            return `
-                <div class="p-3 bg-gray-50 rounded-lg">
-                    <p class="font-semibold">TFOR: ...${item.tforNumber} (${item.branch})</p>
-                    <p class="text-sm ${actionColor}">${actionText} - ${formatDateAbbreviated(item.deliveryDate || item.reportDate)}</p>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function renderProfileScores() {
-        const container = document.getElementById('profile-scores-container');
-        if (!container) return;
-        const userScores = allScores.filter(s => s.userId === currentUser.uid).sort((a, b) => getMillis(b.timestamp) - getMillis(a.timestamp));
-        if (userScores.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-center">ยังไม่มีการประเมินจากหัวหน้า</p>';
-            return;
-        }
-        container.innerHTML = userScores.map(score => {
-            const scoreDate = score.timestamp ? new Date(getMillis(score.timestamp)).toLocaleDateString('th-TH') : 'ไม่มีข้อมูลวันที่';
-            const starColor = score.score < 0 ? 'text-red-500' : 'text-amber-500';
-            const stars = '★'.repeat(Math.abs(score.score));
-            const awardedBy = allUsers.find(u => u.id === score.awardedByUid);
-            const awardedByName = awardedBy ? `${awardedBy.firstName} ${awardedBy.lastName}` : 'N/A';
-            
-            return `
-                <div class="p-3 bg-gray-50 rounded-lg">
-                    <p class="font-semibold">${score.reason} <span class="${starColor}">${stars}</span></p>
-                    <p class="text-xs text-gray-500">โดย: ${awardedByName} - ${scoreDate}</p>
-                    ${score.notes ? `<p class="text-sm text-gray-600 italic mt-1">"${score.notes}"</p>` : ''}
-                </div>
-            `;
-        }).join('');
-    }
-    
-    changePasswordForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const currentPassword = changePasswordForm.querySelector('#current-password').value;
-        const newPassword = changePasswordForm.querySelector('#new-password').value;
-        const confirmPassword = changePasswordForm.querySelector('#confirm-password').value;
-        if (newPassword !== confirmPassword) {
-            showNotification('รหัสผ่านใหม่ไม่ตรงกัน', false);
-            return;
-        }
-        if (newPassword.length < 6) {
-            showNotification('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร', false);
-            return;
-        }
-        try {
-            const user = auth.currentUser;
-            const credential = EmailAuthProvider.credential(user.email, currentPassword);
-            await reauthenticateWithCredential(user, credential);
-            await updatePassword(user, newPassword);
-            changePasswordForm.reset();
-            showNotification('เปลี่ยนรหัสผ่านสำเร็จแล้ว!');
-        } catch (error) {
-            showNotification('เปลี่ยนรหัสผ่านไม่สำเร็จ: ' + error.message, false);
-            console.error("Password change error:", error);
-        }
-    });
-    
-    async function deleteAllInboundData() {
-        const button = document.getElementById('delete-all-data-btn');
-        button.disabled = true;
-        button.innerHTML = `<div class="loading-spinner w-5 h-5 border-white border-t-transparent rounded-full inline-block mr-2"></div> กำลังลบ...`;
-        try {
-            // Firestore batches are limited to 500 operations.
-            // This function will process documents in chunks of 400 to be safe.
-            const deleteCollection = async (collectionRef) => {
-                let querySnapshot = await getDocs(query(collectionRef));
-                while (querySnapshot.size > 0) {
-                    const batch = writeBatch(db);
-                    querySnapshot.docs.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
-                    await batch.commit();
-                    querySnapshot = await getDocs(query(collectionRef)); // Re-fetch to see if any remain
-                }
-            };
-            await deleteCollection(collection(db, "transfers"));
-            await deleteCollection(collection(db, "issues"));
-            
-            showNotification("ลบข้อมูลของเข้าและปัญหาทั้งหมดสำเร็จ");
-        } catch (error) {
-            console.error("Error deleting all data:", error);
-            showNotification("เกิดข้อผิดพลาดในการลบข้อมูล", false);
-        } finally {
-             button.disabled = false;
-             button.textContent = 'ลบข้อมูลของเข้าทั้งหมด (เพื่อทดสอบ)';
-        }
-    }
-    
-    document.getElementById('delete-all-data-btn')?.addEventListener('click', () => {
-        showConfirmationModal(
-            'คำเตือน! การกระทำนี้จะลบข้อมูล "ของเข้าทั้งหมด" และ "สินค้ามีปัญหา" ทั้งหมดออกจากระบบอย่างถาวร ไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?',
-            deleteAllInboundData
-        );
-    });
-    
-    document.getElementById('backup-restore-btn')?.addEventListener('click', () => {
-        backupModal.classList.remove('hidden');
-        backupModal.classList.add('flex');
-    });
-    
-    document.getElementById('backup-modal-cancel')?.addEventListener('click', () => {
-        backupModal.classList.add('hidden');
-        backupModal.classList.remove('flex');
-    });
-    
-    document.getElementById('backup-data-btn').addEventListener('click', async () => {
-        const allData = {
-            transfers: [...allTransfersData, ...completedTransfersData],
-            issues: Object.values(issuesData).flat(),
-            scores: allScores,
-            users: allUsers,
-            starPoints: allStarPoints
-        };
-         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
-         const downloadAnchorNode = document.createElement('a');
-         downloadAnchorNode.setAttribute("href", dataStr);
-         downloadAnchorNode.setAttribute("download", `inbound_backup_${new Date().toISOString().split('T')[0]}.json`);
-         document.body.appendChild(downloadAnchorNode);
-         downloadAnchorNode.click();
-         document.body.removeChild(downloadAnchorNode);
-         showNotification("กำลังดาวน์โหลดไฟล์ Backup...");
-    });
-    
-    const restoreFileInput = document.getElementById('restore-file-input');
-    const restoreDataBtn = document.getElementById('restore-data-btn');
-    let restoreFile = null;
-    
-    restoreFileInput.addEventListener('change', (e) => {
-        restoreFile = e.target.files[0];
-        if (restoreFile) {
-            restoreDataBtn.disabled = false;
-        } else {
-            restoreDataBtn.disabled = true;
-        }
-    });
-    
-    restoreDataBtn.addEventListener('click', () => {
-        if (!restoreFile) {
-            showNotification("กรุณาเลือกไฟล์ Backup ก่อน", false);
-            return;
-        }
-        showConfirmationModal("การกู้คืนข้อมูลจะเขียนทับข้อมูลที่มีอยู่ทั้งหมด คุณแน่ใจหรือไม่?", () => {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.transfers && data.issues && data.scores && data.users && data.starPoints) {
-                        restoreDataBtn.disabled = true;
-                        restoreDataBtn.innerHTML = `<div class="loading-spinner w-5 h-5 border-white border-t-transparent rounded-full inline-block mr-2"></div> กำลังกู้คืน...`;
-                        
-                        // This is a simplified restore. A real-world scenario would need more robust error handling and batching.
-                        const batch = writeBatch(db);
-                        data.transfers.forEach(item => {
-                            const { id, ...itemData } = item; // Separate ID from data
-                            batch.set(doc(db, "transfers", id), itemData);
-                        });
-                        data.issues.forEach(item => {
-                             const { id, ...itemData } = item;
-                            batch.set(doc(db, "issues", id), itemData);
-                        });
-                        data.scores.forEach(item => {
-                             const { id, ...itemData } = item;
-                            batch.set(doc(db, "scores", id), itemData);
-                        });
-                        data.starPoints.forEach(item => {
-                             const { id, ...itemData } = item;
-                            batch.set(doc(db, "starPoints", id), itemData);
-                        });
-                        await batch.commit();
-                        showNotification("กู้คืนข้อมูลสำเร็จ!");
-                        backupModal.classList.add('hidden');
-                    } else {
-                        throw new Error("Invalid backup file format.");
-                    }
-                } catch (error) {
-                    console.error("Restore error:", error);
-                    showNotification("ไฟล์ Backup ไม่ถูกต้อง หรือเกิดข้อผิดพลาด", false);
-                } finally {
-                    restoreDataBtn.disabled = false;
-                    restoreDataBtn.textContent = 'Restore ข้อมูล';
-                    restoreFileInput.value = '';
-                }
-            };
-            reader.readAsText(restoreFile);
-        });
-    });
-    
-    // LOG Function
-    async function logAction(action, details) {
-        try {
-            await addDoc(collection(db, "logs"), {
-                action: action,
-                details: details,
-                userId: currentUser.uid,
-                userName: `${currentUserProfile.firstName} ${currentUserProfile.lastName}`,
-                timestamp: serverTimestamp()
-            });
-        } catch (error) {
-            console.error("Error logging action:", error);
-        }
-    }
-});
